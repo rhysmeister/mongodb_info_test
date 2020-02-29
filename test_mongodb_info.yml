@@ -1,0 +1,49 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+
+    - name: Gather all supported information
+      mongodb_info:
+      register: all
+
+    - name: Show gathered info
+      debug:
+       msg: "{{ all }}"
+
+    - assert:
+        that:
+          - "'wiredTigerFileHandleCloseIdleTime' in (all | string)"
+          - "'storageEngines' in (all | string)"
+          - "'network' in (all | string)"
+
+    - name: Gather only information about databases and their total size
+      mongodb_info:
+        filter: databases, total_size
+      register: dbs
+
+    - name: Show gathered info
+      debug:
+       msg: "{{ dbs }}"
+
+    - assert:
+        that:
+          - "'databases' in (dbs | string)"
+          - "'admin' in (dbs | string)"
+          - "'local' in (dbs | string)"
+          - "'config' in (dbs | string)"
+          - "'sizeOnDisk' in (dbs | string)"
+
+    - name: Gather all information except parameters
+      mongodb_info:
+        filter: '!parameters'
+      register: no_parameters
+
+    - name: Show gathered info
+      debug:
+       msg: "{{ no_parameters }}"
+
+    - assert:
+        that:
+          - "'parameters' not in (no_parameters | string)"
